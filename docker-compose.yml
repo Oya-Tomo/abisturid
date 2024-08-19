@@ -1,0 +1,13 @@
+services:
+  train:
+    container_name: "abisturid-train"
+    build: .
+    tty: true
+    volumes:
+      - ./:/workspace
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: [utility, compute, video]
