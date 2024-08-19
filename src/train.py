@@ -69,7 +69,7 @@ def train():
         if not os.path.exists("checkpoint"):
             os.makedirs("checkpoint")
         torch.save(dataset.state_dict(), config.train_config.save_dataset)
-        print("Save dataset done")
+        print(f"Save dataset done: size -> {len(dataset)} boards")
 
     print("Train start")
 
@@ -136,7 +136,7 @@ def train():
             if not os.path.exists("checkpoint"):
                 os.makedirs("checkpoint")
             torch.save(dataset.state_dict(), config.train_config.save_dataset)
-            print("Save dataset done")
+            print(f"Save dataset done: size -> {len(dataset)} boards")
 
 
 if __name__ == "__main__":
