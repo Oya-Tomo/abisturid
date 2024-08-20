@@ -9,7 +9,7 @@ class SelfPlayConfig:
 @dataclass
 class TreeConfig:
     depth: int = 7  # The maximum depth of the tree
-    k: int = 3  # The minimum number of actions that must be selected
+    k: int = 10  # The max number of actions that must be selected
 
 
 @dataclass
