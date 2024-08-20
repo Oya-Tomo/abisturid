@@ -107,8 +107,8 @@ if __name__ == "__main__":
     queue = Queue()
 
     config = TreeConfig(
-        depth=5,
-        k=2,
+        depth=20,
+        k=15,
     )
 
     black_weight = SVFModel().state_dict()
