@@ -14,3 +14,8 @@
 ```
 docker compose up -d
 ```
+
+### tree search
+
+This program uses Negamax with Alpha-Beta Pruning to search the game tree.
+The pruning made the search faster and more efficient.
