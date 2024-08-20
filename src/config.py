@@ -50,7 +50,7 @@ class Config:
 
 train_config = Config(
     warmup_config=SelfPlayConfig(
-        num_processes=10,
+        num_processes=13,
         num_games=5000,
         tree_config=TreeConfig(
             depth=20,
@@ -58,8 +58,8 @@ train_config = Config(
         ),
     ),
     selfplay_config=SelfPlayConfig(
-        num_processes=10,
-        num_games=500,
+        num_processes=13,
+        num_games=1000,
         tree_config=TreeConfig(
             depth=20,
             k=15,
