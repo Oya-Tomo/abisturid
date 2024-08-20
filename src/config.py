@@ -11,7 +11,10 @@ class TreeConfig:
 class SelfPlayConfig:
     num_processes: int = 10
     num_games: int = 100
-    tree_config: TreeConfig = TreeConfig()
+    tree_config: TreeConfig = TreeConfig(
+        depth=20,
+        k=15,
+    )
 
 
 @dataclass
