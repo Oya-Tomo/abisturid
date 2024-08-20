@@ -79,9 +79,9 @@ class Tree:
         elif depth == 0:
             return value
         else:
-            if turn == Stone.BLACK and value > self.black_max:
+            if turn == Stone.BLACK and value >= self.black_max:
                 self.black_max = value
-            elif turn == Stone.WHITE and value > self.white_max:
+            elif turn == Stone.WHITE and value >= self.white_max:
                 self.white_max = value
             else:
                 return value
