@@ -24,6 +24,9 @@ class Tree:
         self.values: dict[int, float] = {}  # state value function outputs
         self.transitions: dict[int, dict[int, Board]] = {}  # state transition cache
 
+        self.black_max = -float("inf")
+        self.white_max = -float("inf")
+
     def search(self, state: Board, turn: Stone) -> list[float]:
         self.expand(state, turn)
 
@@ -63,6 +66,9 @@ class Tree:
     def evaluate(self, state: Board, turn: Stone, depth: int) -> float:
         self.expand(state, turn)
 
+        key = state.key(turn)
+        value = self.values[key]
+
         if state.is_over():
             b, w, _ = state.get_count()
             score = count_to_score(b, w)
@@ -71,35 +77,27 @@ class Tree:
             else:
                 return -score
         elif depth == 0:
-            return self.values[state.key(turn)]
+            return value
         else:
-            actions = state.get_actions(turn)
-            remain_actions = deepcopy(actions)
-            search_actions = []
-            for action, next_state in self.transitions[state.key(turn)].items():
-                if (
-                    self.values[next_state.key(flip(turn))]
-                    > self.values[state.key(turn)]
-                ):
-                    search_actions.append(action)
-                    remain_actions.remove(action)
+            if turn == Stone.BLACK and value > self.black_max:
+                self.black_max = value
+            elif turn == Stone.WHITE and value > self.white_max:
+                self.white_max = value
+            else:
+                return value
 
-            # fill k actions with random actions
-            if len(search_actions) < min(
-                self.config.k,
-                len(actions),
-            ):
-                search_actions.extend(
-                    random.sample(
-                        remain_actions,
-                        k=min(self.config.k, len(actions)) - len(search_actions),
-                    )
-                )
+            transitions = self.transitions[key]
+            ns_values = [
+                (-self.values[ns.key(flip(turn))], ns) for _, ns in transitions.items()
+            ]
+            ns_values.sort(key=lambda x: x[0], reverse=True)
 
-            scores = [0.0] * len(search_actions)
-            for i, action in enumerate(search_actions):
-                next_state = self.transitions[state.key(turn)][action]
-                scores[i] = -self.evaluate(next_state, flip(turn), depth - 1)
+            scores = [-float("inf")] * len(transitions)
+            for i, (v, ns) in enumerate(ns_values):
+                if i < self.config.k:
+                    scores[i] = -self.evaluate(ns, flip(turn), depth - 1)
+                else:
+                    scores[i] = v
 
             return max(scores)
 
@@ -107,18 +105,21 @@ class Tree:
 if __name__ == "__main__":
     from model import SVFModel
     from bitboard import gen_random_board
+    import time
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = SVFModel().to(device)
     config = TreeConfig(
-        depth=7,
-        k=2,
+        depth=15,
+        k=10,
     )
     tree = Tree(model, config)
-    board, turn = gen_random_board(50)
+    board, turn = gen_random_board(0)
     print(board)
     actions = board.get_actions(turn)
+    t = time.time()
     scores = tree.search(board, turn)
+    print(time.time() - t)
     print(actions)
     print(scores)
     board.act(turn, scores.index(max(scores)))
