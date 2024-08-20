@@ -4,7 +4,6 @@ RUN apt update
 
 RUN apt install vim \
         curl \
-        ping \
         zip \
         python3 \
         python3-pip \
