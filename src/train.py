@@ -54,9 +54,7 @@ def train():
         dataset.load_state_dict(torch.load(config.train_config.load_dataset))
         print(f"Load dataset done:  size -> {len(dataset)} boards")
     else:
-        for i, res in enumerate(
-            self_play_loop(model, config.tree_config, config.warmup_games)
-        ):
+        for i, res in enumerate(self_play_loop(model, config.warmup_config)):
             black_steps, black_value, white_steps, white_value = res
             dataset.add(Stone.BLACK, black_steps, black_value)
             dataset.add(Stone.WHITE, white_steps, white_value)
@@ -77,9 +75,7 @@ def train():
         print(f"Loop: {loop}")
 
         dataset.periodic_delete()
-        for i, res in enumerate(
-            self_play_loop(model, config.tree_config, config.selfplay_games)
-        ):
+        for i, res in enumerate(self_play_loop(model, config.selfplay_config)):
             black_steps, black_value, white_steps, white_value = res
             dataset.add(Stone.BLACK, black_steps, black_value)
             dataset.add(Stone.WHITE, white_steps, white_value)

@@ -2,14 +2,16 @@ from dataclasses import dataclass
 
 
 @dataclass
-class SelfPlayConfig:
-    num_processes: int = 10
+class TreeConfig:
+    depth: int = 10  # The maximum depth of the tree
+    k: int = 5  # The max number of actions that must be selected
 
 
 @dataclass
-class TreeConfig:
-    depth: int = 7  # The maximum depth of the tree
-    k: int = 10  # The max number of actions that must be selected
+class SelfPlayConfig:
+    num_processes: int = 10
+    num_games: int = 100
+    tree_config: TreeConfig = TreeConfig()
 
 
 @dataclass
@@ -40,23 +42,28 @@ class TrainConfig:
 
 @dataclass
 class Config:
-    warmup_games: int
-    selfplay_games: int
+    warmup_config: SelfPlayConfig
     selfplay_config: SelfPlayConfig
-    tree_config: TreeConfig
     dataset_config: DatasetConfig
     train_config: TrainConfig
 
 
 train_config = Config(
-    warmup_games=5000,
-    selfplay_games=500,
-    selfplay_config=SelfPlayConfig(
-        num_processes=13,
+    warmup_config=SelfPlayConfig(
+        num_processes=10,
+        num_games=5000,
+        tree_config=TreeConfig(
+            depth=20,
+            k=15,
+        ),
     ),
-    tree_config=TreeConfig(
-        depth=20,
-        k=15,
+    selfplay_config=SelfPlayConfig(
+        num_processes=10,
+        num_games=500,
+        tree_config=TreeConfig(
+            depth=20,
+            k=15,
+        ),
     ),
     dataset_config=DatasetConfig(
         periodic_delete=2000,
@@ -77,14 +84,21 @@ train_config = Config(
 )
 
 debug_config = Config(
-    warmup_games=10,
-    selfplay_games=5,
-    selfplay_config=SelfPlayConfig(
-        num_processes=5,
+    warmup_config=SelfPlayConfig(
+        num_processes=10,
+        num_games=20,
+        tree_config=TreeConfig(
+            depth=20,
+            k=15,
+        ),
     ),
-    tree_config=TreeConfig(
-        depth=1,
-        k=1,
+    selfplay_config=SelfPlayConfig(
+        num_processes=10,
+        num_games=10,
+        tree_config=TreeConfig(
+            depth=20,
+            k=15,
+        ),
     ),
     dataset_config=DatasetConfig(
         periodic_delete=5,
