@@ -5,7 +5,7 @@ from torch.multiprocessing import Queue, Process
 
 from agent import ModelAgent, Step
 from bitboard import Stone, flip, gen_random_board
-from config import TreeConfig
+from config import SelfPlayConfig, TreeConfig
 from model import SVFModel
 from tree import Tree, count_to_score
 
@@ -53,7 +53,7 @@ def self_play(
     )
 
 
-def self_play_loop(model: SVFModel, config: TreeConfig, n: int) -> Generator[
+def self_play_loop(model: SVFModel, config: SelfPlayConfig) -> Generator[
     tuple[list[Step], float, list[Step], float],
     None,
     None,
@@ -64,20 +64,20 @@ def self_play_loop(model: SVFModel, config: TreeConfig, n: int) -> Generator[
 
     model_weight = model.cpu().state_dict()
 
-    for _ in range(n):
+    for _ in range(config.num_games):
         task = Process(
             target=self_play,
             args=(
                 queue,
                 model_weight,
                 model_weight,
-                config,
+                config.tree_config,
                 random.randint(0, 58),
             ),
         )
         tasks.append(task)
 
-    for _ in range(n):
+    for _ in range(config.num_processes):
         task = tasks.pop(0)
         task.start()
         workers.append(task)
