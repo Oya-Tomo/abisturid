@@ -99,7 +99,11 @@ def train():
         ) as pbar:
             for epoch in pbar:
                 total_loss = 0
-                for state, value in dataloader:
+                for state, value in tqdm(
+                    dataloader,
+                    ncols=80,
+                    bar_format="{l_bar}{bar:10}{r_bar}",
+                ):
                     state = state.to(device)
                     value = value.to(device)
 
