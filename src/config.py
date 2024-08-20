@@ -3,18 +3,15 @@ from dataclasses import dataclass
 
 @dataclass
 class TreeConfig:
-    depth: int = 10  # The maximum depth of the tree
-    k: int = 5  # The max number of actions that must be selected
+    depth: int  # The maximum depth of the tree
+    k: int  # The max number of actions that must be selected
 
 
 @dataclass
 class SelfPlayConfig:
-    num_processes: int = 10
-    num_games: int = 100
-    tree_config: TreeConfig = TreeConfig(
-        depth=20,
-        k=15,
-    )
+    num_processes: int
+    num_games: int
+    tree_config: TreeConfig
 
 
 @dataclass
@@ -25,22 +22,22 @@ class DatasetConfig:
 
 @dataclass
 class TrainConfig:
-    loops: int = 1000
-    epochs: int = 50
+    loops: int
+    epochs: int
 
-    save_epochs: int = 2
+    save_epochs: int
 
-    batch_size: int = 512
-    lr: float = 0.002
-    weight_decay: float = 1e-6
-    momentum: float = 0.9
-    nesterov: bool = True
+    batch_size: int
+    lr: float
+    weight_decay: float
+    momentum: float
+    nesterov: bool
 
-    restart_epoch: int = 0
-    load_checkpoint: str = ""
+    restart_epoch: int
+    load_checkpoint: str
 
-    save_dataset: str | None = "checkpoint/dataset.pth"
-    load_dataset: str | None = "checkpoint/dataset.pth"
+    save_dataset: str | None
+    load_dataset: str | None
 
 
 @dataclass
@@ -79,6 +76,8 @@ train_config = Config(
         batch_size=512,
         lr=0.002,
         weight_decay=1e-6,
+        momentum=0.9,
+        nesterov=True,
         restart_epoch=0,
         load_checkpoint="",
         save_dataset="checkpoint/dataset.pth",
@@ -114,6 +113,8 @@ debug_config = Config(
         batch_size=512,
         lr=0.002,
         weight_decay=1e-6,
+        momentum=0.9,
+        nesterov=True,
         restart_epoch=0,
         load_checkpoint="",
         save_dataset="checkpoint/dataset.pth",
