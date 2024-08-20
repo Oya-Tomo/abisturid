@@ -89,6 +89,7 @@ def train():
             pin_memory=True,
         )
 
+        print("using device:", device)
         model = model.to(device)
         model.train()
 
