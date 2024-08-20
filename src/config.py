@@ -55,8 +55,8 @@ train_config = Config(
         num_processes=13,
     ),
     tree_config=TreeConfig(
-        depth=7,
-        k=2,
+        depth=20,
+        k=15,
     ),
     dataset_config=DatasetConfig(
         periodic_delete=2000,
