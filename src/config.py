@@ -67,7 +67,7 @@ train_config = Config(
     ),
     dataset_config=DatasetConfig(
         periodic_delete=2000,
-        limit_length=50000,
+        limit_length=500000,
     ),
     train_config=TrainConfig(
         loops=1000,
