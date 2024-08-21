@@ -11,6 +11,9 @@ def count_to_score(b: int, w: int) -> float:
     return (b - w) / (b + w)
 
 
+NEG_INF = -float("inf")
+
+
 class Tree:
     def __init__(
         self,
@@ -24,18 +27,19 @@ class Tree:
         self.values: dict[int, float] = {}  # state value function outputs
         self.transitions: dict[int, dict[int, Board]] = {}  # state transition cache
 
-        self.black_max = -float("inf")
-        self.white_max = -float("inf")
-
     def search(self, state: Board, turn: Stone) -> list[float]:
         self.expand(state, turn)
 
         actions = state.get_actions(turn)
-        scores = [-float("inf")] * 65
+        scores = [NEG_INF] * 65
         for action in actions:
             next_state = self.transitions[state.key(turn)][action]
             scores[action] = -self.evaluate(
-                next_state, flip(turn), self.config.depth - 1
+                next_state,
+                flip(turn),
+                self.config.depth - 1,
+                NEG_INF,
+                NEG_INF,
             )
 
         return scores
@@ -63,7 +67,14 @@ class Tree:
         for ns, v in zip(next_states, values):
             self.values[ns.key(flip(turn))] = v
 
-    def evaluate(self, state: Board, turn: Stone, depth: int) -> float:
+    def evaluate(
+        self,
+        state: Board,
+        turn: Stone,
+        depth: int,
+        black_thd: float,
+        whihe_thd: float,
+    ) -> float:
         self.expand(state, turn)
 
         key = state.key(turn)
@@ -79,10 +90,10 @@ class Tree:
         elif depth == 0:
             return value
         else:
-            if turn == Stone.BLACK and value >= self.black_max:
-                self.black_max = value
-            elif turn == Stone.WHITE and value >= self.white_max:
-                self.white_max = value
+            if turn == Stone.BLACK and value >= black_thd:
+                black_thd = value
+            elif turn == Stone.WHITE and value >= whihe_thd:
+                whihe_thd = value
             else:
                 return value
 
@@ -95,7 +106,13 @@ class Tree:
             scores = [-float("inf")] * len(transitions)
             for i, (v, ns) in enumerate(ns_values):
                 if i < self.config.k:
-                    scores[i] = -self.evaluate(ns, flip(turn), depth - 1)
+                    scores[i] = -self.evaluate(
+                        ns,
+                        flip(turn),
+                        depth - 1,
+                        black_thd,
+                        whihe_thd,
+                    )
                 else:
                     scores[i] = v
 
