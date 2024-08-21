@@ -71,7 +71,7 @@ def train():
 
     print("Train start")
 
-    for loop in range(config.train_config.loops):
+    for loop in range(config.train_config.restart_epoch, config.train_config.loops):
         print(f"Loop: {loop}")
 
         dataset.periodic_delete()
