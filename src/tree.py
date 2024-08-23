@@ -1,4 +1,5 @@
 from copy import deepcopy
+from dataclasses import dataclass
 import random
 
 import torch
@@ -14,6 +15,12 @@ def count_to_score(b: int, w: int) -> float:
 NEG_INF = -float("inf")
 
 
+@dataclass
+class Node:
+    state: Board
+    value: float
+
+
 class Tree:
     def __init__(
         self,
@@ -24,8 +31,7 @@ class Tree:
         self.device = next(model.parameters()).device
         self.config = config
 
-        self.values: dict[int, float] = {}  # state value function outputs
-        self.transitions: dict[int, dict[int, Board]] = {}  # state transition cache
+        self.nodes: dict[int, dict[int, Node]] = {}  # tree nodes
 
     def search(self, state: Board, turn: Stone) -> list[float]:
         self.expand(state, turn)
@@ -33,9 +39,9 @@ class Tree:
         actions = state.get_actions(turn)
         scores = [NEG_INF] * 65
         for action in actions:
-            next_state = self.transitions[state.key(turn)][action]
+            next_node = self.nodes[state.key(turn)][action]
             scores[action] = -self.evaluate(
-                next_state,
+                next_node,
                 flip(turn),
                 self.config.depth - 1,
                 NEG_INF,
@@ -45,18 +51,16 @@ class Tree:
         return scores
 
     def expand(self, state: Board, turn: Stone) -> None:
-        if state.key(turn) in self.transitions:
+        if state.key(turn) in self.nodes:
             return
 
         actions = state.get_actions(turn)
         next_states: list[Board] = []
 
-        self.transitions[state.key(turn)] = {}
         for action in actions:
-            next_board = deepcopy(state)
-            next_board.act(turn, action)
-            self.transitions[state.key(turn)][action] = next_board
-            next_states.append(next_board)
+            next_state = deepcopy(state)
+            next_state.act(turn, action)
+            next_states.append(next_state)
 
         inputs = torch.stack(
             [ns.to_tensor(flip(turn)) for ns in next_states],
@@ -64,21 +68,23 @@ class Tree:
         with torch.no_grad():
             values = self.model(inputs).cpu().flatten().tolist()
 
-        for ns, v in zip(next_states, values):
-            self.values[ns.key(flip(turn))] = v
+        next_nodes = [(a, s, v) for a, s, v in zip(actions, next_states, values)]
+        next_nodes.sort(key=lambda x: x[2], reverse=True)
+        self.nodes[state.key(turn)] = {
+            a: Node(state=s, value=v) for a, s, v in next_nodes
+        }
 
     def evaluate(
         self,
-        state: Board,
+        current: Node,
         turn: Stone,
         depth: int,
         black_thd: float,
         whihe_thd: float,
     ) -> float:
-        self.expand(state, turn)
-
+        state = current.state
+        value = current.value
         key = state.key(turn)
-        value = self.values[key]
 
         if state.is_over():
             b, w, _ = state.get_count()
@@ -97,24 +103,22 @@ class Tree:
             else:
                 return value
 
-            transitions = self.transitions[key]
-            ns_values = [
-                (-self.values[ns.key(flip(turn))], ns) for _, ns in transitions.items()
-            ]
-            ns_values.sort(key=lambda x: x[0], reverse=True)
+            self.expand(state, turn)
 
-            scores = [-float("inf")] * len(transitions)
-            for i, (v, ns) in enumerate(ns_values):
+            next_nodes = self.nodes[key]
+
+            scores = [-float("inf")] * len(next_nodes)
+            for i, (action, node) in enumerate(next_nodes.items()):
                 if i < self.config.k:
                     scores[i] = -self.evaluate(
-                        ns,
+                        node,
                         flip(turn),
                         depth - 1,
                         black_thd,
                         whihe_thd,
                     )
                 else:
-                    scores[i] = v
+                    scores[i] = -node.value
 
             return max(scores)
 
@@ -127,7 +131,7 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = SVFModel().to(device)
     config = TreeConfig(
-        depth=15,
+        depth=4,
         k=10,
     )
     tree = Tree(model, config)
